@@ -1,13 +1,13 @@
 version: '3'
 services:
-  site:
+  app:
     build:
       context: ./dockerfiles
       dockerfile: javascript.dockerfile
     ports:
       - "8081:8081"
     volumes:
-      - ./src/frontend:/var/www/html
+      - ./frontend:/var/www/html
     labels:
       - "traefik.http.routers.site.rule=Host(`app.localhost`)"
     depends_on:
@@ -35,7 +35,7 @@ services:
     ports:
       - "8082:8082"
     volumes:
-      - ./src/backend:/var/www/html
+      - ./backend:/var/www/html
     labels:
       - "traefik.http.routers.api.rule=(Host(`app.localhost`) && PathPrefix(`/api`))"
     depends_on:
