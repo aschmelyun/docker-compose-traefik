@@ -1,0 +1,52 @@
+version: '3'
+services:
+  site:
+    build:
+      context: ./dockerfiles
+      dockerfile: javascript.dockerfile
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./src/frontend:/var/www/html
+    labels:
+      - "traefik.http.routers.site.rule=Host(`app.localhost`)"
+    depends_on:
+      - traefik
+      - api
+
+  mysql:
+    image: mariadb:10.6
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: secret
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+
+  api:
+    build:
+      context: ./dockerfiles
+      dockerfile: php.dockerfile
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./src/backend:/var/www/html
+    labels:
+      - "traefik.http.routers.api.rule=(Host(`app.localhost`) && PathPrefix(`/api`))"
+    depends_on:
+      - traefik
+      - mysql
+
+  traefik:
+    image: traefik:v2.9
+    command: --api.insecure=true --providers.docker
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
